@@ -2,10 +2,10 @@ const blessed = require('blessed')
 const contrib = require('blessed-contrib')
 const screen = blessed.screen()
 const line = contrib.line({
-  width: 80,
-  height: 30,
-  xLabelPadding: 3,
-  xPadding: 5,
+  // width: 80,
+  // height: 30,
+  // xLabelPadding: 3,
+  // xPadding: 5,
   label: 'Response time (MS)',
   showLegend: true,
   legend: {
@@ -13,23 +13,22 @@ const line = contrib.line({
   }
 })
 const initialData = {
-  x: Array.from({ length: 80 }, _ => ' '),
-  y: Array.from({ length: 80 }, _ => 1),
+  
 }
 const get = {
-  ...initialData,
+  x: Array.from({ length: 10 }, _ => ' '),
+  y: Array.from({ length: 10 }, _ => 1),
   title: 'GET',
-  x: [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  y: [1, 1, 1, 1, 1, 1, 1, 1],
   style: {
     line: 'yellow'
   }
 }
 const post = {
-  ...initialData,
+  x: Array.from({ length: 10 }, _ => ' '),
+  y: Array.from({ length: 10 }, _ => 1),
   title: 'POST',
-  x: [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  y: [1, 1, 1, 1, 1, 1, 1, 1],
+  // x: [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+  // y: [1, 1, 1, 1, 1, 1, 1, 1],
   style: {
     line: 'green'
   }
