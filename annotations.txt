@@ -1,0 +1,3 @@
+npm install --save-dev @babel/core @babel/node
+npm install --save-dev @babel/plugin-proposal-decorators
+https://www.sitepoint.com/javascript-decorators-what-they-are/
