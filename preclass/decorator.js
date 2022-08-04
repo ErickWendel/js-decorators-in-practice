@@ -2,6 +2,12 @@ const {
   appendFile
 } = require('fs/promises')
 
+const {
+  initialize,
+  updateGraph
+} = require('./ui')
+
+initialize()
 
 const {
   randomUUID
@@ -9,34 +15,6 @@ const {
 
 const requests = new Map()
 const logger = `logger.log`
-
-// function log(name) {
-//   return function decorator(t, n, descriptor) {
-//     const original = descriptor.value;
-//     if (typeof original !== 'function')
-//       return descriptor;
-
-//     descriptor.value = function (...args) {
-//       console.log(`Arguments for ${name}: ${args}`);
-//       try {
-//         console.time('benchmarking')
-//         const result = original.apply(this, args);
-//         console.log(`Result from ${name}: ${result}`);
-
-//         return injectIfPromise({
-//           target: result,
-//           onFinally: () => console.timeEnd('benchmarking')
-//         })
-
-//       } catch (e) {
-//         console.log(`Error from ${name}: ${e}`);
-//         throw e;
-//       }
-//     }
-
-//     return descriptor
-//   };
-// }
 
 function injectIfPromise({
   target,
@@ -54,34 +32,70 @@ function injectIfPromise({
   return target
 }
 
-function tracker(t, n, descriptor) {
+function responseTimeTracker(t, n, descriptor) {
   const original = descriptor.value;
   if (typeof original !== 'function')
     return descriptor;
 
   const reqId = randomUUID()
 
-  descriptor.value = function (request, response) {
+  const trackerLast = {
+    GET: performance.now(),
+    POST: performance.now(),
+  }
+  descriptor.value = decorateExecution(
+    reqId,
+    original,
+    trackerLast
+  )
+
+  return descriptor
+}
+
+function decorateExecution(reqId, original, trackerLast) {
+
+  return function (request, response) {
+    const startTime = performance.now()
     const data = {
       reqId,
       method: request.method,
       url: request.url,
       name: 'test',
     }
-    console.log('data', data)
-    console.time('benchmarking')
-
-    const result = original.apply(this, [request, response]);
+    // console.time('benchmarking')
+    const result = original.apply(this, [request, response])
 
     return injectIfPromise({
       target: result,
-      onFinally: () => {
-        console.timeEnd('benchmarking')
-      }
+      onFinally: onRequestEnded(data, response, startTime, trackerLast)
     })
   }
+}
 
-  return descriptor
+function onRequestEnded(data, response, startTime, trackerLast) {
+  return () => {
+    
+    const endTime = performance.now()
+    let timeDiff = endTime - startTime //in ms
+    let seconds = Math.round(timeDiff)
+
+    // data.statusCode = response.statusCode
+    // data.statusMessage = response.statusMessage
+    // data.elapsed = seconds
+    // console.log('benchmark', data)
+
+    //  simulating that we already made some calculations
+    const trackerDiff = endTime - trackerLast[data.method]
+    if (trackerDiff >= 200) {
+
+      updateGraph(
+        data.method,
+        seconds
+      )
+      trackerLast[data.method] = performance.now()
+    }
+
+  }
 }
 
 function classLog(target) {
@@ -101,5 +115,5 @@ function classLog(target) {
 module.exports = {
   // log,
   classLog,
-  tracker
+  responseTimeTracker
 }

@@ -1,10 +1,10 @@
 const {
   createServer
 } = require('http')
+
 const {
-  log,
   classLog,
-  tracker
+  responseTimeTracker
 } = require('./decorator')
 const {
   once
@@ -14,62 +14,26 @@ const {
 } = require('crypto')
 const Db = new Map()
 
-// @classLog
-class Request {
-  constructor(a, b) {
-    this.a = a
-    this.b = b
-  }
-
-  // @log('hello')
-  async getHeroes(id) {
-    if (id) {
-      const item = Db.get(id)
-      return item;
-    }
-
-    return [...Db.values()]
-
-  }
-
-  // @log('hello')
-  async saveHeroes(data) {
-    const id = randomUUID()
-    const item = JSON.parse(data)
-    item.id = id
-
-    Db.set(id, item)
-
-    return item
-    // return Promise.reject('ok')
-  }
-
-}
-
-// ;
-// (async () => {
-//   const c = new Request(1, 2, 3, 4)
-//   // C.p = 20
-//   // C.x = 11
-//   // C.x
-//   console.log('r', await c.m(1, 2))
-// })();
-
-const request = new Request()
-
+const { setTimeout } = require('timers/promises')
 class Server {
 
-  @tracker
+  @responseTimeTracker
   async handler(req, res) {
+    await setTimeout(parseInt(Math.random() * 100))
     if (req.method === 'POST') {
       const data = await once(req, 'data')
-      const result = await request.saveHeroes(data)
-      res.end(JSON.stringify(result))
+      const id = randomUUID()
+      const item = JSON.parse(data)
+      item.id = id
+      
+      Db.set(id, item)
+      
+      res.writeHead(201)
+      res.end(JSON.stringify(item))
       return;
     }
-    
-    const result = await request.getHeroes()
-    res.end(JSON.stringify(result))
+
+    res.end(JSON.stringify( [...Db.values()]))
     return;
 
   }
