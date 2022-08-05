@@ -33,17 +33,6 @@ function route(target, {
   }
 }
 
-
-function injectIfPromise({
-  target,
-  onFinally = () => {},
-}) {
-
-  target.finally?.(onFinally)
-
-  return target
-}
-
 function responseTimeTracker(target, {
   kind,
   name,
@@ -52,27 +41,14 @@ function responseTimeTracker(target, {
 
   const reqId = randomUUID()
 
-  const trackerLast = {
+  const methodsTimeTracker = {
     GET: performance.now(),
     POST: performance.now(),
   }
-  return decorateExecution({
-    reqId,
-    target,
-    name,
-    trackerLast
-  })
-}
-
-function decorateExecution({
-  reqId,
-  target,
-  name,
-  trackerLast
-}) {
-
   return function (request, response) {
-    const startTime = performance.now()
+    const requestStartedAt = performance.now()
+    const afterExecution = target.apply(this, [request, response])
+
     const data = {
       reqId,
       name,
@@ -80,30 +56,30 @@ function decorateExecution({
       url: request.url,
     }
 
-    const afterExecution = target.apply(this, [request, response])
-
-    return injectIfPromise({
-      target: afterExecution,
-      onFinally: onRequestEnded({
-        data,
-        response,
-        startTime,
-        trackerLast
-      })
+    const onFinally = onRequestEnded({
+      data,
+      response,
+      requestStartedAt,
+      methodsTimeTracker
     })
+
+    // assuming it'll always be a promise obj
+    afterExecution.finally(onFinally)
+
+    return afterExecution
   }
 }
 
 function onRequestEnded({
   data,
   response,
-  startTime,
-  trackerLast
+  requestStartedAt,
+  methodsTimeTracker
 }) {
   return () => {
 
-    const endTime = performance.now()
-    let timeDiff = endTime - startTime
+    const requestEndedAt = performance.now()
+    let timeDiff = requestEndedAt - requestStartedAt
     let seconds = Math.round(timeDiff)
 
     data.statusCode = response.statusCode
@@ -112,14 +88,14 @@ function onRequestEnded({
     log('benchmark', data)
 
     //  simulating that we already made some calculations
-    const trackerDiff = endTime - trackerLast[data.method]
+    const trackerDiff = requestEndedAt - methodsTimeTracker[data.method]
     if (trackerDiff >= 200) {
 
       ui.updateGraph(
         data.method,
         seconds
       )
-      trackerLast[data.method] = performance.now()
+      methodsTimeTracker[data.method] = performance.now()
     }
 
   }

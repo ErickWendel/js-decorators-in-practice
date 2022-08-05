@@ -17,14 +17,14 @@ const {
 const {
   route,
   responseTimeTracker
-} = require('./decorator')
+} = require('./decorators')
 
 const Db = new Map()
 
 class Server {
 
   @responseTimeTracker
-  @route
+  @route // must be first because it changes the response data
   static async handler(req, res) {
     await setTimeout(parseInt(Math.random() * 100))
 

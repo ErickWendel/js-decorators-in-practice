@@ -4,25 +4,29 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "curl:post": "curl -X POST \"localhost:3000/people\" --data '{\"name\": \"erickwendel\"}'",
+    "curl:get": "curl \"localhost:3000/people\"",
     "loadtest:get": "autocannon -d 30 localhost:3000/people",
     "loadtest:post": "autocannon -m POST -d 30 --body '{\"erick\": 1}' localhost:3000/people ",
     "loadtest:concurrently": "concurrently \"npm run loadtest:get\" \"npm run loadtest:post\" ",
     "start": "npx babel-node index.js",
+    "start:dev": "npx nodemon --exec npm start",
     "start:noui": "UI_DISABLED=true npx babel-node index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "erickwendel",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.18.10",
-    "@babel/node": "^7.18.10",
-    "@babel/plugin-proposal-decorators": "^7.18.10",
-    "concurrently": "^7.3.0"
+    "autocannon": "7.9.0",
+    "concurrently": "7.3.0"
   },
   "dependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/plugin-proposal-class-static-block": "^7.18.6",
-    "blessed": "^0.1.81",
-    "blessed-contrib": "^4.11.0"
+    "@babel/core": "7.18.10",
+    "@babel/node": "7.18.10",
+    "@babel/plugin-proposal-decorators": "7.18.10",
+    "@babel/plugin-proposal-class-properties": "7.18.6",
+    "@babel/plugin-proposal-class-static-block": "7.18.6",
+    "blessed": "0.1.81",
+    "blessed-contrib": "4.11.0"
   }
 }

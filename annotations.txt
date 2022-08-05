@@ -1,3 +1,125 @@
-npm install --save-dev @babel/core @babel/node
-npm install --save-dev @babel/plugin-proposal-decorators
+mkdir performance-monitor-using-decorators
+npm init -y
+
+npm i @babel/core@7.18.10 @babel/node@7.18.10
+npm i @babel/plugin-proposal-decorators@7.18.10
+npm i @babel/plugin-proposal-class-properties@7.18.6
+npm i @babel/plugin-proposal-class-static-block@@7.18.6
+
+touch .babelrc
+  all 
+
+npm i -D concurrently@7.3.0
+npm i -D nodemon@2.0.19
+
+touch index.js 
+  console.log('ae')
+
+package.json 
+  start
+  start:dev
+
+index.js 
+  class Server 
+    handler 
+      res.end('ok')
+  createServer 
+
+make a curl 
+index.js 
+  all handler 
+
+make a curl 
+  curl -X POST "localhost:3000/people" --data '{"name": "erickwendel"}'
+  curl "localhost:3000/people"
+package.json 
+  curl:get
+  curl:post 
+npm i -g ntl 
+ntl 
+
+touch decorators.js 
+  route 
+    all 
+index.js 
+  add @route 
+
+run curls again
+decorators.js 
+  responseTimeTracker
+    without methodsTimeTracker
+
+    until afterExecution
+      console.time('benchmark' + reqId)
+      afterExecution.finally(_ => {
+        console.timeEnd('benchmark'+ reqId)
+      })
+      return afterExecution
+run npm run curl:get and curl:post 
+it should show benchmark logs
+
+decorators.js 
+  onRequestEnded
+    just the function
+    without on sign methodsTimeTracker
+
+  responseTimeTracker
+    remove console.time
+    add onRequestEnded
+
+  onRequestEnded
+    all untill ui 
+  log 
+    without if
+
+run curls - it should show benchmark logs
+
+package.json 
+  add start:noui
+
+decorators 
+  add uiDisabled
+  add if on log()
+test both 
+
+show https://www.npmjs.com/package/blessed-contrib
+
+npm i blessed@0.1.81 blessed-contrib@4.11.0
+show https://www.npmjs.com/package/blessed-contrib#line-chart
+
+touch ui
+class Ui 
+  until renderGraph
+
+decorators
+  import ui
+
+npm run start:dev
+show graph monting
+
+Ui.js
+  updateGraph
+    all 
+decorators
+  ui.updateGraph
+    without trackerDiff
+show graph 
+
+npm i -D autocannon@7.9.0
+package
+  loadtest:get
+  loadtest:post
+
+ntl both loadtest scripts
+show graph updating too often
+
+decorators
+  add trackerDiff >= 200
+
+show graph working
+show noui working
+
+that's id :) 
+
 https://www.sitepoint.com/javascript-decorators-what-they-are/
+https://github.com/tc39/proposal-decorators
