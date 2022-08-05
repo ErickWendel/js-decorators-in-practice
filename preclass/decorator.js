@@ -38,7 +38,7 @@ function injectIfPromise({
   target,
   onFinally = () => {},
 }) {
-  
+
   target.finally?.(onFinally)
 
   return target
@@ -84,12 +84,22 @@ function decorateExecution({
 
     return injectIfPromise({
       target: afterExecution,
-      onFinally: onRequestEnded(data, response, startTime, trackerLast)
+      onFinally: onRequestEnded({
+        data,
+        response,
+        startTime,
+        trackerLast
+      })
     })
   }
 }
 
-function onRequestEnded(data, response, startTime, trackerLast) {
+function onRequestEnded({
+  data,
+  response,
+  startTime,
+  trackerLast
+}) {
   return () => {
 
     const endTime = performance.now()

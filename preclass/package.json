@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "loadtest:get": "autocannon -d 30 localhost:3000",
+    "loadtest:get": "autocannon -d 30 localhost:3000/people",
+    "loadtest:post": "autocannon -m POST -d 30 --body '{\"erick\": 1}' localhost:3000/people ",
     "loadtest:concurrently": "concurrently \"npm run loadtest:get\" \"npm run loadtest:post\" ",
-    "loadtest:post": "autocannon -m POST -d 30 --body '{\"erick\": 1}' localhost:3000 ",
     "start": "npx babel-node index.js",
     "start:noui": "UI_DISABLED=true npx babel-node index.js"
   },

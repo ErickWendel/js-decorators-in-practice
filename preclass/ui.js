@@ -14,21 +14,18 @@ class Ui {
   line = contrib.line({
     label: 'Response time (MS)',
     showLegend: true,
-    legend: {
-      width: 12
-    }
   })
 
   getRequest = {
     ...getEmptyCoordinates(),
-    title: 'GET',
+    title: 'GET  /people',
     style: {
       line: 'yellow'
     }
   }
   postRequest = {
     ...getEmptyCoordinates(),
-    title: 'POST',
+    title: 'POST /people',
     style: {
       line: 'green'
     }
