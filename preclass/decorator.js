@@ -1,41 +1,54 @@
-const {
-  appendFile
-} = require('fs/promises')
+const isUiDisabled = process.env.UI_DISABLED
+let ui
+if (isUiDisabled) {
+  ui = {
+    updateGraph: () => {}
+  }
+} else {
+  const Ui = require('./ui')
+  ui = new Ui()
+}
 
-const {
-  initialize,
-  updateGraph
-} = require('./ui')
-
-initialize()
-
+const log = (...args) => {
+  if (isUiDisabled) console.log(...args)
+}
 const {
   randomUUID
 } = require('crypto')
 
-const requests = new Map()
-const logger = `logger.log`
+function route(target, {
+  kind,
+  name,
+}) {
+  if (kind !== 'method') return target;
+
+  return async function (request, response) {
+    const {
+      statusCode,
+      message
+    } = await target.apply(this, [request, response])
+
+    response.writeHead(statusCode)
+    response.end(JSON.stringify(message))
+  }
+}
+
 
 function injectIfPromise({
   target,
   onFinally = () => {},
-  onErr = () => {},
-  onSuccess = () => {}
 }) {
-  if (!target.then) return target
-
-  target
-    .then(onSuccess)
-    .catch(onErr)
-    .finally(onFinally)
+  
+  target.finally?.(onFinally)
 
   return target
 }
 
-function responseTimeTracker(t, n, descriptor) {
-  const original = descriptor.value;
-  if (typeof original !== 'function')
-    return descriptor;
+function responseTimeTracker(target, {
+  kind,
+  name,
+}) {
+  if (kind !== 'method') return target;
 
   const reqId = randomUUID()
 
@@ -43,30 +56,34 @@ function responseTimeTracker(t, n, descriptor) {
     GET: performance.now(),
     POST: performance.now(),
   }
-  descriptor.value = decorateExecution(
+  return decorateExecution({
     reqId,
-    original,
+    target,
+    name,
     trackerLast
-  )
-
-  return descriptor
+  })
 }
 
-function decorateExecution(reqId, original, trackerLast) {
+function decorateExecution({
+  reqId,
+  target,
+  name,
+  trackerLast
+}) {
 
   return function (request, response) {
     const startTime = performance.now()
     const data = {
       reqId,
+      name,
       method: request.method,
       url: request.url,
-      name: 'test',
     }
-    // console.time('benchmarking')
-    const result = original.apply(this, [request, response])
+
+    const afterExecution = target.apply(this, [request, response])
 
     return injectIfPromise({
-      target: result,
+      target: afterExecution,
       onFinally: onRequestEnded(data, response, startTime, trackerLast)
     })
   }
@@ -74,21 +91,21 @@ function decorateExecution(reqId, original, trackerLast) {
 
 function onRequestEnded(data, response, startTime, trackerLast) {
   return () => {
-    
+
     const endTime = performance.now()
-    let timeDiff = endTime - startTime //in ms
+    let timeDiff = endTime - startTime
     let seconds = Math.round(timeDiff)
 
-    // data.statusCode = response.statusCode
-    // data.statusMessage = response.statusMessage
-    // data.elapsed = seconds
-    // console.log('benchmark', data)
+    data.statusCode = response.statusCode
+    data.statusMessage = response.statusMessage
+    data.elapsed = timeDiff.toFixed(2).concat('ms')
+    log('benchmark', data)
 
     //  simulating that we already made some calculations
     const trackerDiff = endTime - trackerLast[data.method]
     if (trackerDiff >= 200) {
 
-      updateGraph(
+      ui.updateGraph(
         data.method,
         seconds
       )
@@ -98,22 +115,7 @@ function onRequestEnded(data, response, startTime, trackerLast) {
   }
 }
 
-function classLog(target) {
-  const isClass = target.toString().includes('class')
-  if (!isClass) throw new Error('this decorator is meant for classes!')
-
-  const newClass = class extends target {
-    constructor(...args) {
-      super(...args);
-      console.log(`constructing a class with arguments: ${args.join(", ")}`);
-    }
-  }
-  console.log(`An instance of the ${target.name} ${isClass} has been created`)
-  return newClass;
-}
-
 module.exports = {
-  // log,
-  classLog,
+  route,
   responseTimeTracker
 }

@@ -1,68 +1,62 @@
 const blessed = require('blessed')
 const contrib = require('blessed-contrib')
 const screen = blessed.screen()
-const line = contrib.line({
-  // width: 80,
-  // height: 30,
-  // xLabelPadding: 3,
-  // xPadding: 5,
-  label: 'Response time (MS)',
-  showLegend: true,
-  legend: {
-    width: 12
-  }
+
+const createList = (len, val) => Array.from({
+  length: len
+}, _ => val)
+const getEmptyCoordinates = () => ({
+  x: createList(10, ' '),
+  y: createList(10, 1),
 })
-const initialData = {
-  
-}
-const get = {
-  x: Array.from({ length: 10 }, _ => ' '),
-  y: Array.from({ length: 10 }, _ => 1),
-  title: 'GET',
-  style: {
-    line: 'yellow'
+
+class Ui {
+  line = contrib.line({
+    label: 'Response time (MS)',
+    showLegend: true,
+    legend: {
+      width: 12
+    }
+  })
+
+  getRequest = {
+    ...getEmptyCoordinates(),
+    title: 'GET',
+    style: {
+      line: 'yellow'
+    }
   }
-}
-const post = {
-  x: Array.from({ length: 10 }, _ => ' '),
-  y: Array.from({ length: 10 }, _ => 1),
-  title: 'POST',
-  // x: [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  // y: [1, 1, 1, 1, 1, 1, 1, 1],
-  style: {
-    line: 'green'
+  postRequest = {
+    ...getEmptyCoordinates(),
+    title: 'POST',
+    style: {
+      line: 'green'
+    }
   }
-}
-
-
-function initialize() {
-  screen.append(line) //must append before setting data
-  line.setData([
-    get,
-    post
-  ])
-  screen.render()
-}
-
-function updateGraph(method, value) {
-  if (method === 'GET') {
-    get.y.shift()
-    get.y.push(value)
+  constructor() {
+    this.screen = screen
+    this.screen.append(this.line)
+    this.renderGraph()
   }
 
-  if (method === 'POST') {
-    post.y.shift()
-    post.y.push(value)
+  renderGraph() {
+    this.line.setData([
+      this.getRequest,
+      this.postRequest
+    ])
+    this.screen.render()
   }
 
-  line.setData([
-    get,
-    post
-  ])
-  screen.render()
+  updateGraph(method, value) {
+    const target = method === 'GET' ?
+      this.getRequest :
+      this.postRequest
+
+    target.y.shift()
+    target.y.push(value)
+
+    this.renderGraph()
+  }
 }
 
-module.exports = {
-  updateGraph,
-  initialize
-}
+module.exports = Ui
