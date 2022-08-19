@@ -1,3 +1,5 @@
 {
-  "window.zoomLevel": 3
+  "window.zoomLevel": 3,
+  "javascript.validate.enable": false,
+  "typescript.validate.enable": false
 }
